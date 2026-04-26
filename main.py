@@ -9,7 +9,7 @@ from loader import load_capacities, load_lottery, load_schools
 from reporter import print_summary, write_assignments_csv
 
 ROOT = Path(__file__).parent
-REGISTRATIONS_CSV = ROOT / "WHSMUN 2027 Registration Form (Responses) - Form Responses 1 (1).csv"
+REGISTRATIONS_CSV = ROOT / "WHSMUN 2026 Cleaned.csv"
 ROOMS_XLSX = ROOT / "RoomNumbers.xlsx"
 LOTTERY_JSON = ROOT / "lottery.json"
 OUTPUT_CSV = ROOT / "assignments.csv"
