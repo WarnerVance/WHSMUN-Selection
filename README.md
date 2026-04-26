@@ -33,7 +33,7 @@ Every committee the school said "Yes" to on a single-seat question gets one dele
 
 Whatever delegates are left after Step 1 need to go into the five GA committees. The unit of distribution is a **country slot**: one of the school's countries getting a chair in one GA committee. A school with 3 countries can fill at most 3 slots in any single GA committee.
 
-Here's the catch that shapes everything: in SOCHUM and DISEC, each country slot costs **2 delegates** (because those committees seat double-del pairs). In ECOFIN, SPECPOL, and GA Ad-Hoc, each slot costs **1 delegate**.
+In SOCHUM and DISEC, each country slot costs **2 delegates** (because those committees seat double-del pairs). In ECOFIN, SPECPOL, and GA Ad-Hoc, each slot costs **1 delegate**.
 
 If you add up the cost of giving every one of a school's countries a seat in all five GAs, it's `2 + 2 + 1 + 1 + 1 = 7` delegates per country. So the math works like this:
 
