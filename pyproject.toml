@@ -1,0 +1,8 @@
+[project]
+name = "whsmun-selection"
+version = "0.1.0"
+description = "Assign WHSMUN delegates to committees from registration responses"
+requires-python = ">=3.14"
+dependencies = [
+    "openpyxl>=3.1",
+]
