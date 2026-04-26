@@ -50,12 +50,6 @@ Now the program walks through the schools in **registration order** and tries to
 
 This is why registration order matters: the schools that registered first get their full request honored, and any squeeze falls on whoever registered late.
 
-## Why this design
-
-- **Single-seats are explicit.** The form asks Yes/No, so the program respects the school's choice exactly rather than trying to be clever about which specialized agency they "should" be in.
-- **GAs absorb the rest mathematically.** Because every country can in principle go to all five GA committees, distributing leftovers there is a pure arithmetic problem, not a preferences problem. The `R ÷ 7` plus a leftover pattern is just the cleanest way to spread delegates evenly while respecting the double-del constraint.
-- **Drops aren't redistributed.** When a committee fills up, the program doesn't quietly reroute a school's delegates somewhere they didn't ask for. It reports the drop so a human can make the call — sign someone up for a different committee, expand the room, or accept the loss.
-
 ## Running it
 
 ```
