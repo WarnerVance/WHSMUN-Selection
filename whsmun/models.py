@@ -25,6 +25,7 @@ class Assignment:
     school: School
     placements: PlacementMap = field(default_factory=dict)
     dropped: PlacementMap = field(default_factory=dict)
+    assigned_countries: tuple[str, ...] = ()
 
     @property
     def total_assigned(self) -> int:
