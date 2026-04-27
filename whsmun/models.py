@@ -1,5 +1,9 @@
-"""Data classes for schools and assignments."""
+"""Domain types: schools, placements, and assignment results."""
+from __future__ import annotations
+
 from dataclasses import dataclass, field
+
+PlacementMap = dict[str, int]
 
 
 @dataclass(frozen=True)
@@ -19,8 +23,8 @@ class School:
 @dataclass
 class Assignment:
     school: School
-    placements: dict[str, int] = field(default_factory=dict)
-    dropped: dict[str, int] = field(default_factory=dict)
+    placements: PlacementMap = field(default_factory=dict)
+    dropped: PlacementMap = field(default_factory=dict)
 
     @property
     def total_assigned(self) -> int:
@@ -29,3 +33,10 @@ class Assignment:
     @property
     def total_dropped(self) -> int:
         return sum(self.dropped.values())
+
+
+@dataclass(frozen=True)
+class AssignmentResult:
+    """Output of an `AssignmentStrategy`: per-school assignments plus aggregate usage."""
+    assignments: list[Assignment]
+    used: dict[str, int]

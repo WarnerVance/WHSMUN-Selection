@@ -53,7 +53,28 @@ This is why registration order matters: the schools that registered first get th
 ## Running it
 
 ```
-uv run main.py
+uv run python -m whsmun
 ```
 
-The three input files need to be sitting next to `main.py` with the names listed at the top. The output `assignments.csv` is written into the same folder.
+By default the tool reads `WHSMUN 2026 Cleaned.csv`, `RoomNumbers.xlsx`, and `lottery.json` from the repo root and writes `assignments.csv` next to them. To point at different files, pass any of:
+
+```
+uv run python -m whsmun \
+    --registrations PATH \
+    --rooms PATH \
+    --lottery PATH \
+    --output PATH
+```
+
+## Tests
+
+```
+uv pip install -e ".[dev]"
+uv run pytest
+```
+
+## Project layout
+
+- `whsmun/` — the package (committees registry, models, loader, assignment, reporting, CLI)
+- `tests/` — pytest unit + end-to-end tests
+- `scripts/` — one-off scripts (e.g. `convert_2026.py` for reshaping the original 2026 form export)
