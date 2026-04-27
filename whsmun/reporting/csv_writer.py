@@ -9,7 +9,7 @@ from whsmun.models import Assignment
 
 
 _HEADER: tuple[str, ...] = (
-    "School", "Lottery Country", "Country Count", "Total Delegates",
+    "School", "Lottery Country", "Countries", "Country Count", "Total Delegates",
     *ALL_COMMITTEES, "Assigned", "Dropped",
 )
 
@@ -26,6 +26,7 @@ def _row_for(a: Assignment) -> list[object]:
     return [
         a.school.name,
         a.school.lottery_country or "",
+        ", ".join(a.assigned_countries),
         a.school.country_count,
         a.school.total_delegates,
         *(a.placements.get(c, 0) for c in ALL_COMMITTEES),

@@ -9,10 +9,11 @@ This tool decides which committees each school's delegates will sit on at WHSMUN
 - The Google Form export (`...Form Responses 1 (1).csv`) — one row per school, with the size of their delegation, how many extra countries they're bringing, and a Yes/No for each committee.
 - `RoomNumbers.xlsx` — the maximum number of delegates each committee room can hold.
 - `lottery.json` — for each school that drew a country in the lottery, the country they drew. (A school's country count is `1 + extra countries` if they won the lottery, otherwise just the extras.)
+- `Countries.txt` — one country per line, the pool of countries handed out to schools who asked for more countries beyond their lottery pick. Earlier registrations get earlier picks; no two schools end up with the same country.
 
 **Output**
 
-- `assignments.csv` — one row per school, with the number of delegates placed in each committee, plus totals for placed and dropped.
+- `assignments.csv` — one row per school, with the number of delegates placed in each committee, the concrete countries the school represents (lottery country first, then countries pulled from the pool), plus totals for placed and dropped.
 - A summary printed to the screen showing how full each committee is and listing any delegates that had to be cut because their committee filled up.
 
 ## The committees come in three flavors
@@ -56,13 +57,14 @@ This is why registration order matters: the schools that registered first get th
 uv run python -m whsmun
 ```
 
-By default the tool reads `WHSMUN 2026 Cleaned.csv`, `RoomNumbers.xlsx`, and `lottery.json` from the repo root and writes `assignments.csv` next to them. To point at different files, pass any of:
+By default the tool reads `WHSMUN 2026 Cleaned.csv`, `RoomNumbers.xlsx`, `lottery.json`, and `Countries.txt` from the repo root and writes `assignments.csv` next to them. To point at different files, pass any of:
 
 ```
 uv run python -m whsmun \
     --registrations PATH \
     --rooms PATH \
     --lottery PATH \
+    --countries PATH \
     --output PATH
 ```
 

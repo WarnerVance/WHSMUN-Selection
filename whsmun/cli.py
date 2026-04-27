@@ -5,8 +5,8 @@ import argparse
 import sys
 from pathlib import Path
 
-from whsmun.assignment import AssignmentError, FCFSStrategy
-from whsmun.loader import load_capacities, load_lottery, load_schools
+from whsmun.assignment import AssignmentError, FCFSStrategy, assign_countries
+from whsmun.loader import load_capacities, load_countries, load_lottery, load_schools
 from whsmun.reporting import print_summary, write_assignments_csv
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -14,6 +14,7 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_REGISTRATIONS = _REPO_ROOT / "WHSMUN 2026 Cleaned.csv"
 DEFAULT_ROOMS = _REPO_ROOT / "RoomNumbers.xlsx"
 DEFAULT_LOTTERY = _REPO_ROOT / "lottery.json"
+DEFAULT_COUNTRIES = _REPO_ROOT / "Countries.txt"
 DEFAULT_OUTPUT = _REPO_ROOT / "assignments.csv"
 
 
@@ -28,6 +29,8 @@ def _build_parser() -> argparse.ArgumentParser:
                         help="Path to RoomNumbers.xlsx.")
     parser.add_argument("--lottery", type=Path, default=DEFAULT_LOTTERY,
                         help="Path to lottery.json.")
+    parser.add_argument("--countries", type=Path, default=DEFAULT_COUNTRIES,
+                        help="Path to the country pool (one country per line).")
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT,
                         help="Path to write the assignments CSV.")
     return parser
@@ -38,13 +41,18 @@ def main(argv: list[str] | None = None) -> int:
 
     lottery = load_lottery(args.lottery)
     capacities = load_capacities(args.rooms)
+    country_pool = load_countries(args.countries)
     schools = load_schools(args.registrations, lottery)
 
     try:
         result = FCFSStrategy().assign(schools, capacities)
+        countries_by_school = assign_countries(schools, country_pool)
     except AssignmentError as e:
         print(f"ERROR: {e}", file=sys.stderr)
         return 1
+
+    for assignment in result.assignments:
+        assignment.assigned_countries = countries_by_school[assignment.school.row_index]
 
     write_assignments_csv(args.output, result.assignments)
     print_summary(result.assignments, capacities, result.used)

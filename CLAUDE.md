@@ -8,12 +8,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 uv run python -m whsmun
 ```
 
-Reads three input files relative to the repo root and writes `assignments.csv`:
+Reads four input files relative to the repo root and writes `assignments.csv`:
 - `WHSMUN 2026 Cleaned.csv` — Google Forms export (cleaned), one row per school
 - `RoomNumbers.xlsx` — sheet `Committee Numbers`, columns `(dept, committee, count, ...)`
 - `lottery.json` — `{school_name: country}` for schools that drew a country in the lottery
+- `Countries.txt` — one country per line, the pool from which non-lottery slots are filled
 
-Override any of the four paths with `--registrations`, `--rooms`, `--lottery`, `--output`.
+Override any of the five paths with `--registrations`, `--rooms`, `--lottery`, `--countries`, `--output`.
 
 Python 3.14+. Runtime dep: `openpyxl`. Dev dep: `pytest` (`pip install -e ".[dev]"`).
 
@@ -27,11 +28,13 @@ whsmun/                   the package
   loader/
     lottery.py            lottery.json → {normalized_name: country}
     capacities.py         RoomNumbers.xlsx → {committee: capacity}
+    countries.py          Countries.txt → ordered list[str]
     registrations.py      Forms CSV → list[School] via RegistrationSchema
     _text.py              normalize_school_name, first_int helpers
   assignment/
     request.py            compute_requested + _LEFTOVER_PATTERNS table
     strategy.py           AssignmentStrategy protocol + FCFSStrategy
+    countries.py          assign_countries: per-school country list (lottery + pool)
     errors.py             AssignmentError
   reporting/
     csv_writer.py         write_assignments_csv
@@ -47,7 +50,8 @@ The CLI is a thin orchestrator over a four-stage pipeline:
 1. **`whsmun.loader`** — parses the three inputs. School names are normalized (lowercase + strip non-alphanumerics) so lottery JSON keys loosely match CSV rows. CSV column discovery and validation are centralized in `RegistrationSchema.from_headers`, which raises a single `RegistrationParseError` listing every missing/unrecognized column.
 2. **`whsmun.assignment.compute_requested(school)`** — derives a school's *desired* placement from delegation size, country count, and committee Yes/No answers. Pure function, capacity-unaware.
 3. **`whsmun.assignment.FCFSStrategy().assign(schools, capacities)`** — applies committee capacities **first-come-first-served in registration order**. Returns an `AssignmentResult(assignments, used)`. Overflow delegates are recorded in `Assignment.dropped`, not redistributed.
-4. **`whsmun.reporting`** — `write_assignments_csv` writes one row per school in `ALL_COMMITTEES` order; `print_summary` prints a usage-vs-capacity table and the list of FCFS drops.
+4. **`whsmun.assignment.assign_countries(schools, country_pool)`** — picks the concrete countries each school will represent. The lottery country (if any) comes first; the remaining `extra_countries` are pulled from `Countries.txt` in file order, skipping any name already used by a lottery or earlier school. Pool exhaustion raises `AssignmentError` naming the school that ran out. The CLI writes the result onto `Assignment.assigned_countries`.
+5. **`whsmun.reporting`** — `write_assignments_csv` writes one row per school in `ALL_COMMITTEES` order with a `Countries` column listing all assigned countries (lottery first, comma-separated); `print_summary` prints a usage-vs-capacity table and the list of FCFS drops.
 
 ## Committee model
 
@@ -65,6 +69,8 @@ Two structural facts drive the assignment algorithm:
 
 - **`AssignmentError`** in `compute_requested` (negative delegation, more single-seats than delegates, 0 countries with GA leftover, GA remainder exceeds `7 * country_count`) halts the entire run — a single school's request being infeasible is a data bug.
 - **`AssignmentError`** in `FCFSStrategy.assign` if a school requests a committee with no capacity defined in `RoomNumbers.xlsx` (registry/xlsx drift).
+- **`AssignmentError`** in `assign_countries` if `Countries.txt` runs out before every school's `extra_countries` quota is filled.
+- **`ValueError`** from `load_countries` if `Countries.txt` contains duplicate entries.
 - Capacity overflow does **not** raise; it is recorded in `Assignment.dropped` and printed by `print_summary`.
 - **`RegistrationParseError`** for any malformed registration CSV (missing required columns, unrecognized committee column, non-integer cell where a count is required). Includes row index and school name when available.
 - **`ValueError`** from `load_capacities` for unknown xlsx committee labels (lists every offender at once).
