@@ -3,7 +3,21 @@
   <component name="CsvFileAttributes">
     <option name="attributeMap">
       <map>
-        <entry key="/WHSMUN 2027 Registration Form (Responses) - Form Responses 1 (1).csv">
+        <entry key="/Responses.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/WHSMUN 2026 Cleaned.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/WHSMUN 2026 Registration Form (Responses).csv">
           <value>
             <Attribute>
               <option name="separator" value="," />

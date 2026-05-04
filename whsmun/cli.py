@@ -11,7 +11,7 @@ from whsmun.reporting import print_summary, write_assignments_csv
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 
-DEFAULT_REGISTRATIONS = _REPO_ROOT / "WHSMUN 2026 Cleaned.csv"
+DEFAULT_REGISTRATIONS = _REPO_ROOT / "Responses.csv"
 DEFAULT_ROOMS = _REPO_ROOT / "RoomNumbers.xlsx"
 DEFAULT_LOTTERY = _REPO_ROOT / "lottery.json"
 DEFAULT_COUNTRIES = _REPO_ROOT / "Countries.txt"
