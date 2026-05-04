@@ -54,7 +54,7 @@ This is why registration order matters: the schools that registered first get th
 ## Running it
 
 ```
-uv run python -m whsmun
+uv run whsmun
 ```
 
 By default the tool reads `WHSMUN 2026 Cleaned.csv`, `RoomNumbers.xlsx`, `lottery.json`, and `Countries.txt` from the repo root and writes `assignments.csv` next to them. To point at different files, pass any of:
