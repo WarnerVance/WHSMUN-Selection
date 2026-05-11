@@ -5,6 +5,7 @@ description = "Assign WHSMUN delegates to committees from registration responses
 requires-python = ">=3.14"
 dependencies = [
     "openpyxl>=3.1",
+    "pillow>=10",
 ]
 
 [project.optional-dependencies]
