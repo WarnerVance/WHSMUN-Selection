@@ -141,6 +141,10 @@ def _template_path():
     return as_file(files("whsmun.templates") / "roster_template.xlsx")
 
 
+def _image_path():
+    return as_file(files("whsmun.templates") / "roster_image.png")
+
+
 def test_write_one_emits_expected_rows(tmp_path: Path):
     r = _roster(
         "Sample",
@@ -148,8 +152,8 @@ def test_write_one_emits_expected_rows(tmp_path: Path):
         SOCHUM=6, DISEC=6, ECOFIN=3, SPECPOL=3, **{"GA Ad-Hoc": 3},
         EU=1, AU=1,
     )
-    with _template_path() as template:
-        out = _write_one(template, tmp_path, r)
+    with _template_path() as template, _image_path() as image:
+        out = _write_one(template, tmp_path, r, image)
     wb = load_workbook(out)
     ws = wb["ROSTER TEMPLATE"]
     rows = []
@@ -194,6 +198,27 @@ def test_write_rosters_end_to_end(tmp_path: Path):
     assert ws["A7"].value == "School A"
     assert ws["B7"].value == "ECOFIN"
     assert ws["C7"].value == "X"
+
+
+def test_write_rosters_embeds_banner_image(tmp_path: Path):
+    import zipfile
+    output_dir = tmp_path / "Rosters"
+    with _template_path() as template, _image_path() as image:
+        write_rosters(template, output_dir, [_roster("X", ("A",), EU=1)], image)
+    with zipfile.ZipFile(output_dir / "X WHSMUN Roster.xlsx") as z:
+        names = z.namelist()
+    assert any("xl/media/" in n for n in names), \
+        "banner image was dropped from the generated workbook"
+
+
+def test_write_rosters_without_image_skips_attachment(tmp_path: Path):
+    import zipfile
+    output_dir = tmp_path / "Rosters"
+    with _template_path() as template:
+        write_rosters(template, output_dir, [_roster("X", ("A",), EU=1)], None)
+    with zipfile.ZipFile(output_dir / "X WHSMUN Roster.xlsx") as z:
+        names = z.namelist()
+    assert not any("xl/media/" in n for n in names)
 
 
 def test_write_rosters_wipes_existing_dir(tmp_path: Path):

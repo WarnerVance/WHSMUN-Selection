@@ -80,8 +80,9 @@ def _run_roster(assignments_path: Path) -> int:
     rosters = read_assignments_csv(assignments_path)
     output_dir = assignments_path.parent / "Rosters"
     template_resource = files("whsmun.templates") / "roster_template.xlsx"
-    with as_file(template_resource) as template_path:
-        count = write_rosters(template_path, output_dir, rosters)
+    image_resource = files("whsmun.templates") / "roster_image.png"
+    with as_file(template_resource) as template_path, as_file(image_resource) as image_path:
+        count = write_rosters(template_path, output_dir, rosters, image_path)
     print(f"Wrote {count} rosters to {output_dir}/")
     return 0
 
