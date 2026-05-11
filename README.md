@@ -6,7 +6,7 @@ This tool decides which committees each school's delegates will sit on at WHSMUN
 
 **Inputs**
 
-- The Google Form export (`...Form Responses 1 (1).csv`) — one row per school, with the size of their delegation, how many extra countries they're bringing, and a Yes/No for each committee.
+- `Responses.csv` — the Google Form export, one row per school, with the size of their delegation, how many extra countries they're bringing, and a Yes/No for each committee.
 - `RoomNumbers.xlsx` — the maximum number of delegates each committee room can hold.
 - `lottery.json` — for each school that drew a country in the lottery, the country they drew. (A school's country count is `1 + extra countries` if they won the lottery, otherwise just the extras.)
 - `Countries.txt` — one country per line, the pool of countries handed out to schools who asked for more countries beyond their lottery pick. Earlier registrations get earlier picks; no two schools end up with the same country.
@@ -15,6 +15,7 @@ This tool decides which committees each school's delegates will sit on at WHSMUN
 
 - `assignments.csv` — one row per school, with the number of delegates placed in each committee, the concrete countries the school represents (lottery country first, then countries pulled from the pool), plus totals for placed and dropped.
 - A summary printed to the screen showing how full each committee is and listing any delegates that had to be cut because their committee filled up.
+- With `--roster`, a `Rosters/` directory containing one styled xlsx per school (see below).
 
 ## The committees come in three flavors
 
@@ -57,7 +58,7 @@ This is why registration order matters: the schools that registered first get th
 uv run whsmun
 ```
 
-By default the tool reads `WHSMUN 2026 Cleaned.csv`, `RoomNumbers.xlsx`, `lottery.json`, and `Countries.txt` from the repo root and writes `assignments.csv` next to them. To point at different files, pass any of:
+By default the tool reads `Responses.csv`, `RoomNumbers.xlsx`, `lottery.json`, and `Countries.txt` from the repo root and writes `assignments.csv` next to them. To point at different files, pass any of:
 
 ```
 uv run python -m whsmun \
@@ -67,6 +68,21 @@ uv run python -m whsmun \
     --countries PATH \
     --output PATH
 ```
+
+## Per-school roster workbooks
+
+```
+uv run python -m whsmun --roster
+```
+
+Reads an existing `assignments.csv` and writes one styled xlsx per school to `Rosters/`, next to the CSV. Skips the assignment pipeline entirely, so you can regenerate rosters without re-running selection. The directory is wiped and recreated on every run.
+
+Each roster starts as a byte-for-byte copy of the bundled secretariat template (banner image included). For each school, the generator emits one row per delegate seat:
+
+- **GA committees** — one row per country slot, with the country in the **Position** column. SOCHUM and DISEC are double-del, so each country produces two rows: `Country, 1` and `Country, 2`. If the school has more countries than slots in a given GA, the first N countries (lottery first) fill the slots.
+- **Single-seat committees** (regional bodies, specialized agencies, crisis committees) — one row each with **Position** left blank, to be filled in by the secretariat or the school.
+
+Schools that aren't placed in a committee don't get a row for it.
 
 ## Tests
 
@@ -78,5 +94,6 @@ uv run pytest
 ## Project layout
 
 - `whsmun/` — the package (committees registry, models, loader, assignment, reporting, CLI)
+- `whsmun/templates/` — bundled roster template + banner image
 - `tests/` — pytest unit + end-to-end tests
 - `scripts/` — one-off scripts (e.g. `convert_2026.py` for reshaping the original 2026 form export)

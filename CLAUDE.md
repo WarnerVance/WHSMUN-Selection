@@ -5,18 +5,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Run
 
 ```bash
-uv run python -m whsmun
+uv run python -m whsmun                # assignment pipeline → assignments.csv
+uv run python -m whsmun --roster       # roster generator → Rosters/*.xlsx (skips pipeline)
 ```
 
-Reads four input files relative to the repo root and writes `assignments.csv`:
-- `WHSMUN 2026 Cleaned.csv` — Google Forms export (cleaned), one row per school
+The assignment pipeline reads four input files relative to the repo root and writes `assignments.csv`:
+- `Responses.csv` — Google Forms export (cleaned), one row per school
 - `RoomNumbers.xlsx` — sheet `Committee Numbers`, columns `(dept, committee, count, ...)`
 - `lottery.json` — `{school_name: country}` for schools that drew a country in the lottery
 - `Countries.txt` — one country per line, the pool from which non-lottery slots are filled
 
 Override any of the five paths with `--registrations`, `--rooms`, `--lottery`, `--countries`, `--output`.
 
-Python 3.14+. Runtime dep: `openpyxl`. Dev dep: `pytest` (`pip install -e ".[dev]"`).
+`--roster` is a separate mode: it reads back the existing `assignments.csv` at `--output`, then writes one styled xlsx per school to `<dirname(--output)>/Rosters/`. The pipeline is skipped entirely. Re-running wipes and recreates the directory.
+
+Python 3.14+. Runtime deps: `openpyxl`, `pillow` (openpyxl needs pillow to embed the banner image). Dev dep: `pytest` (`pip install -e ".[dev]"`).
 
 ## Layout
 
@@ -38,7 +41,12 @@ whsmun/                   the package
     errors.py             AssignmentError
   reporting/
     csv_writer.py         write_assignments_csv
+    csv_reader.py         read_assignments_csv → list[SchoolRoster] (roster mode)
+    roster.py             write_rosters: per-school xlsx generator
     summary.py            print_summary (capacity table + drops)
+  templates/
+    roster_template.xlsx  bundled blank template (formatting preserved verbatim)
+    roster_image.png      banner image re-attached by roster.py (openpyxl drops it on round-trip)
 tests/                    pytest unit + end-to-end tests
 scripts/convert_2026.py   one-off migration (kept for reference)
 ```
@@ -74,3 +82,17 @@ Two structural facts drive the assignment algorithm:
 - Capacity overflow does **not** raise; it is recorded in `Assignment.dropped` and printed by `print_summary`.
 - **`RegistrationParseError`** for any malformed registration CSV (missing required columns, unrecognized committee column, non-integer cell where a count is required). Includes row index and school name when available.
 - **`ValueError`** from `load_capacities` for unknown xlsx committee labels (lists every offender at once).
+
+## Roster generation (`--roster`)
+
+A separate mode from the assignment pipeline. Reads back the existing `assignments.csv` via `whsmun.reporting.csv_reader.read_assignments_csv` (into `SchoolRoster` records) and produces one styled xlsx per school under `<output_dir>/Rosters/`. Used by the secretariat to give each school a workbook for filling in delegate names.
+
+Row generation rules in `whsmun/reporting/roster.py`:
+- **Single-seat committees**: one row with `Position` left blank — humans fill these in later.
+- **GA committees**: one row per country slot, with the country in `Position`. Slot count = `placements[committee] // WEIGHT[committee]`. The first N countries from the school's `Countries` field (lottery first) fill the slots.
+- **Double-del GA** (SOCHUM, DISEC): two rows per country, with `Position` = `"Country, 1"` / `"Country, 2"`.
+- Committees with `placements[committee] == 0` get no row.
+
+Template handling — `_write_one` byte-copies the bundled template with `shutil.copy2` before opening it, then uses openpyxl only to write cell values. openpyxl reserializes XML on save but preserves merged cells, fonts, column widths, and row heights because those objects aren't touched. The one thing openpyxl **does** drop on round-trip is embedded images, so the banner image is bundled separately as `whsmun/templates/roster_image.png` and re-attached via `openpyxl.drawing.image.Image` at the same anchor (column C row 0, 2209800 × 2171700 EMU) as the original `drawing1.xml`.
+
+`write_rosters` wipes `Rosters/` and recreates it on every run. Filenames are `{sanitized_school_name} WHSMUN Roster.xlsx`; sanitization replaces `/\:*?"<>|` with `_`.
