@@ -18,7 +18,7 @@ def _full_capacities(**overrides: int) -> dict[str, int]:
     base = {
         "SOCHUM": 100, "DISEC": 100, "ECOFIN": 100, "SPECPOL": 100, "GA Ad-Hoc": 100,
         "EU": 5, "AU": 5, "ASEAN": 5, "ICJ": 5,
-        "Spec 1": 5, "Spec 2": 5, "Spec 3": 5,
+        "Iranian Revolution": 5, "UNCSW": 5, "Madagascar": 5,
         "HCC": 5, "UNSC": 5, "JCC A": 5, "JCC B": 5,
         "Ad-Hoc": 5, "Wisconsin Crisis": 5,
     }
