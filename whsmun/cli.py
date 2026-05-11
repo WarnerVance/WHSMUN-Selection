@@ -3,11 +3,17 @@ from __future__ import annotations
 
 import argparse
 import sys
+from importlib.resources import as_file, files
 from pathlib import Path
 
 from whsmun.assignment import AssignmentError, FCFSStrategy, assign_countries
 from whsmun.loader import load_capacities, load_countries, load_lottery, load_schools
-from whsmun.reporting import print_summary, write_assignments_csv
+from whsmun.reporting import (
+    print_summary,
+    read_assignments_csv,
+    write_assignments_csv,
+    write_rosters,
+)
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -33,11 +39,17 @@ def _build_parser() -> argparse.ArgumentParser:
                         help="Path to the country pool (one country per line).")
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT,
                         help="Path to write the assignments CSV.")
+    parser.add_argument("--roster", action="store_true",
+                        help="Generate per-school roster xlsx files from an existing "
+                             "assignments.csv. Skips the assignment pipeline.")
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
+
+    if args.roster:
+        return _run_roster(args.output)
 
     lottery = load_lottery(args.lottery)
     capacities = load_capacities(args.rooms)
@@ -57,6 +69,20 @@ def main(argv: list[str] | None = None) -> int:
     write_assignments_csv(args.output, result.assignments)
     print_summary(result.assignments, capacities, result.used)
     print(f"\nWrote {args.output.name}")
+    return 0
+
+
+def _run_roster(assignments_path: Path) -> int:
+    if not assignments_path.exists():
+        print(f"ERROR: {assignments_path} not found. Run `python -m whsmun` first to "
+              f"generate it, then re-run with --roster.", file=sys.stderr)
+        return 1
+    rosters = read_assignments_csv(assignments_path)
+    output_dir = assignments_path.parent / "Rosters"
+    template_resource = files("whsmun.templates") / "roster_template.xlsx"
+    with as_file(template_resource) as template_path:
+        count = write_rosters(template_path, output_dir, rosters)
+    print(f"Wrote {count} rosters to {output_dir}/")
     return 0
 
 
