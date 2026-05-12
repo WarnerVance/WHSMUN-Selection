@@ -69,3 +69,41 @@ def test_schema_longest_label_wins():
     schema = RegistrationSchema.from_headers(headers)
     jcc_a_header = next(h for h in headers if "JCC Side A" in h)
     assert schema.committee_columns[jcc_a_header] == "JCC A"
+
+
+# Headers taken verbatim from the 2026 form revision: full committee
+# names, parenthetical clarifications, and trailing "Level: ..." suffixes.
+# If the form's wording shifts again these assertions pin the matcher.
+_LIVE_FORM_HEADERS = [
+    "Timestamp",
+    "Name of School",
+    "How large is your Delegation? Changes can be made up until February. "
+    "Please note there is a limit of 34 delegates per delegation. ",
+    "Besides the country you drew in the lottery last year (if you did), "
+    "how many other countries do you wish to represent in General Assembly. "
+    "We will assign countries.",
+    "Would you like to send a delegate to the EU?",
+    "Would you like to send a delegate to the AU?",
+    "Would you like to send a delegate to the ASEAN?",
+    "Would you like to send a delegate to the ICJ (International Court of Justice)? Level: Intermediate",
+    "Would you like to send a delegate to the Iranian Revolution? Level: Intermediate",
+    "Would you like to send a delegate to the UN Commission on the Status of Women (UNCSW)? Level: Beginner ",
+    "Would you like to send a delegate to Madagascar (the movie with the Penguins)? Level: Intermediate",
+    "Would you like to send a delegate to the HCC?\nLevel: Beginner",
+    "Would you like to send a delegate to the UNSC?\nLevel: Intermediate",
+    "Would you like to send a delegate to the JCC Side A?\nLevel: Intermediate",
+    "Would you like to send a delegate to Ad-Hoc?\nLevel: Advanced",
+    "Would you like to send a delegate to the Wisconsin Crisis?\nLevel: Beginner",
+    "Would you like to send a delegate to the JCC Side B?\nLevel: Intermediate",
+    "How will you be getting to WHSMUN?",
+    "If you picked Van/Cars: Would you like us to help arrange parking permits",
+]
+
+
+def test_schema_handles_live_2026_form_headers():
+    schema = RegistrationSchema.from_headers(_LIVE_FORM_HEADERS)
+    canonicals = set(schema.committee_columns.values())
+    assert canonicals == {
+        "EU", "AU", "ASEAN", "ICJ", "Iranian Revolution", "UNCSW", "Madagascar",
+        "HCC", "UNSC", "JCC A", "JCC B", "Ad-Hoc", "Wisconsin Crisis",
+    }
